@@ -1,313 +1,69 @@
 <?php
 require_once __DIR__.'/aligenies_request.php';
+require_once __DIR__.'/server.php';
+
+$request = OAuth2_Request::createFromGlobals();
+$response = new OAuth2_Response();
+// Handle a request to a resource and authenticate the access token
+// #if (!$server->verifyResourceRequest($request,$response)) {
+// #       $server->getResponse()->send();
+// #       error_log('die');
+// #       die;
+// #}
+// //-------
+
+
+
 $chars = md5(uniqid(mt_rand(), true));
-$uuid  = substr($chars,0,8) . '-';
+$uuid = '';
+$uuid = substr($chars,0,8) . '-';
 $uuid .= substr($chars,8,4) . '-';
 $uuid .= substr($chars,12,4) . '-';
 $uuid .= substr($chars,16,4) . '-';
 $uuid .= substr($chars,20,12);
+$messageId = $uuid;
 
 $poststr = file_get_contents("php://input");
 $obj = json_decode($poststr);
-$messageId = $uuid;
+
+$user_id = getUseridFromAccesstoken($obj->payload->accessToken);
+error_log($obj->payload->accessToken);
+#error_log($user);
+if ($user=== 0)
+{
+error_log('-------------');
+	die;
+}
+error_log($user_id);
+
+error_log('-------');
+error_log('----get-request---');
+error_log($poststr);
 
 switch($obj->header->namespace)
 {
 case 'AliGenie.Iot.Device.Discovery':
-
+	$data=array();
+	$stm = getDeviceList($user_id);
+	while($row = $stm->fetch(PDO::FETCH_ASSOC)){
+		        array_push($data,json_decode($row['jsonData'], true));
+	}
+	$Discovery=json_encode($data);
 	$str='{
-  header: {
-    namespace: "AliGenie.Iot.Device.Discovery", 
-    name: "DiscoveryDevicesResponse", 
-    messageId: "%s", 
-    payLoadVersion: 1
-  }, 
-  payload: {
-    devices: [
-    {
-        deviceId: "sensor.temperature1", 
-        deviceName: "传感器", 
-        deviceType: "sensor", 
-        zone: "主卧", 
-        brand: "homeassistant", 
-        model: "DIY温湿度PM传感器", 
-        icon: "https://home-assistant.io/demo/favicon-192x192.png", 
-        properties: [
-          {
-		"name":"pm2.5",
-		"value":"27"
-          },
-          {
-		"name":"humidity",
-		"value":"27"
-          },
-          {
-		"name":"temperature",
-		"value":"27"
-          }
-        ], 
-	actions: [
-		"Query",
-		"QueryHumidity",
-		"QueryTemperature",
-		"QueryPm2.5"
-        ], 
-        extension: {
-          link: "https://www.baidu.com"
-        }
-    },
-    {
-	deviceId: "sensor.illumination_34ce008dc8c3", 
-        deviceName: "传感器", 
-        deviceType: "sensor", 
-        zone: "餐厅", 
-        brand: "homeassistant", 
-        model: "小米网关光照传感器", 
-        icon: "https://home-assistant.io/demo/favicon-192x192.png", 
-        properties: [
-          {
-		"name":"illumination",
-		"value":"27"
-          }
-        ], 
-        actions: [
-		"Query",
-		"QueryIllumination"
-        ], 
-        extension: {
-          link: "https://www.baidu.com"
-        }
-    },
-    {
-        deviceId: "sensor.temperature_158d0001712cbf", 
-        deviceName: "传感器", 
-        deviceType: "sensor", 
-        zone: "阳台", 
-        brand: "homeassistant", 
-        model: "小米温湿度传感器", 
-        icon: "https://home-assistant.io/demo/favicon-192x192.png", 
-        properties: [
-          {
-		"name":"humidity",
-		"value":"27"
-          },
-          {
-		"name":"temperature",
-		"value":"27"
-          }
-        ], 
-        actions: [
-		"QueryHumidity",
-		"QueryTemperature"
-        ], 
-        extension: {
-          link: "https://www.baidu.com"
-        }
-    },
-    {
-        deviceId: "light.yeelight_rgb_7811dc6817ed", 
-        deviceName: "灯", 
-        deviceType: "light", 
-        zone: "餐厅", 
-        brand: "homeassistant", 
-        model: "yeelight", 
-        icon: "https://home-assistant.io/demo/favicon-192x192.png", 
-        properties: [
-          {
-            status: "off"
-          }
-        ], 
-        actions: [
-          "TurnOn", 
-          "TurnOff", 
-	  "SetBrightness",
-	  "SetColor",
-	  "QueryBrightness",
-	  "QueryPowerState", 
-	  "QueryColor", 
-	  "QueryPowerState",
-	  "Query"
-        ], 
-        extension: {
-          link: "https://www.baidu.com"
-	}
-    },
-    {
-        deviceId: "switch.bookroom_key2_008ca89c_ch1", 
-        deviceName: "灯", 
-        deviceType: "light", 
-        zone: "书房", 
-        brand: "homeassistant", 
-        model: "hassmart", 
-        icon: "https://home-assistant.io/demo/favicon-192x192.png", 
-        properties: [
-          {
-            status: "off"
-          }
-        ], 
-        actions: [
-          "TurnOn", 
-          "TurnOff", 
-	  "QueryPowerState"
-        ], 
-        extension: {
-          link: "https://www.baidu.com"
-	}
-    },
-    {
-        deviceId: "switch.bookroom_key2_008ca89c_ch2", 
-        deviceName: "灯", 
-        deviceType: "light", 
-        zone: "书房", 
-        brand: "homeassistant", 
-        model: "hassmart", 
-        icon: "https://home-assistant.io/demo/favicon-192x192.png", 
-        properties: [
-          {
-            status: "off"
-          }
-        ], 
-        actions: [
-          "TurnOn", 
-          "TurnOff", 
-	  "QueryPowerState"
-        ], 
-        extension: {
-          link: "https://www.baidu.com"
-	}
-    },
-    {
-        deviceId: "switch.bathroom1_key2_008c4410_ch1", 
-        deviceName: "灯", 
-        deviceType: "light", 
-        zone: "卫生间", 
-        brand: "homeassistant", 
-        model: "hassmart", 
-        icon: "https://home-assistant.io/demo/favicon-192x192.png", 
-        properties: [
-          {
-            status: "off"
-          }
-        ], 
-        actions: [
-          "TurnOn", 
-          "TurnOff", 
-	  "QueryPowerState"
-        ], 
-        extension: {
-          link: "https://www.baidu.com"
-	}
-    },
-    {
-        deviceId: "switch.bathroom1_key2_008c4410_ch2", 
-        deviceName: "灯", 
-        deviceType: "light", 
-        zone: "卫生间", 
-        brand: "homeassistant", 
-        model: "hassmart", 
-        icon: "https://home-assistant.io/demo/favicon-192x192.png", 
-        properties: [
-          {
-            status: "off"
-          }
-        ], 
-        actions: [
-          "TurnOn", 
-          "TurnOff", 
-	  "QueryPowerState"
-        ], 
-        extension: {
-          link: "https://www.baidu.com"
-	}
-    },
-    {
-        deviceId: "switch.plug_158d000163ae00", 
-        deviceName: "净化器", 
-        deviceType: "airpurifier", 
-        zone: "阳台", 
-        brand: "homeassistant", 
-        model: "负离子发生器", 
-        icon: "https://home-assistant.io/demo/favicon-192x192.png", 
-        properties: [
-          {
-            status: "off"
-          }
-        ], 
-        actions: [
-          "TurnOn", 
-          "TurnOff", 
-	  "QueryPowerState"
-        ], 
-        extension: {
-          link: "https://www.baidu.com"
-        }
-      }, 
-      {
-        deviceId: "light.gateway_light_34ce008dc8c3", 
-        deviceName: "落地灯", 
-        deviceType: "light", 
-        zone: "客厅", 
-        brand: "homeassistant", 
-        model: "小米网关", 
-        icon: "https://home-assistant.io/demo/favicon-192x192.png", 
-        properties: [
-          {
-            status: "off"
-          }
-        ], 
-        actions: [
-          "TurnOn", 
-	  "TurnOff",
-	  "SetBrightness",
-	  "SetColor",
-	  "QueryBrightness",
-	  "QueryPowerState", 
-	  "QueryColor", 
-          "Query"
-        ], 
-        extension: {
-          link: "https://www.baidu.com"
-        }
-      }, 
-      {
-        deviceId: "media_player.sony_bravia_tv", 
-        deviceName: "电视", 
-        deviceType: "television", 
-        zone: "客厅", 
-        brand: "homeassistant", 
-        model: "Sony Tv", 
-        icon: "https://home-assistant.io/demo/favicon-192x192.png", 
-        properties: [
-          {
-            status: "off"
-          }
-        ], 
-        actions: [
-          "TurnOn", 
-          "TurnOff", 
-          "Query", 
-	  "QueryPowerState", 
-          "SelectChannel", 
-          "AdjustUpChannel", 
-          "AdjustDownChannel", 
-          "AdjustUpVolume", 
-          "AdjustDownVolume", 
-          "SetVolume", 
-          "SetMute", 
-          "CancelMute", 
-          "Play", 
-          "Pause", 
-          "Continue", 
-          "Next", 
-          "Previous"
-        ], 
-        extension: {
-          link: "https://www.baidu.com"
-        }
-      }
-    ]
-  }
-}';
+		header: 
+		{
+			namespace: "AliGenie.Iot.Device.Discovery", 
+			name: "DiscoveryDevicesResponse", 
+			messageId: "%s", 
+			payLoadVersion: 1
+		}, 
+		payload: {
+			devices:
+				'.$Discovery.'
+
+			}
+		}';
+#'.$Discovery.'
 	$resultStr = sprintf($str,$messageId);
 	break;
 
@@ -350,12 +106,10 @@ case 'AliGenie.Iot.Device.Control':
 	break;
 case 'AliGenie.Iot.Device.Query':
 	$result = Device_status($obj);
+	$properties = json_encode($result->powerstate);
 	if($result->result == "True" )
 	{
-		if(strpos($result->deviceId,"temperature"))
-		{
-			
-			$str='{
+		$str='{
   	  			"header":{
   	  			    "namespace":"AliGenie.Iot.Device.Query",
   	  			    "name":"%s",
@@ -364,89 +118,147 @@ case 'AliGenie.Iot.Device.Query':
 				   },
 				   "payload":{
 				      "deviceId":"%s"
-                               },
-				   "properties":[
-				    {
-		   	              "name":"temperature",
-		   	              "value":"%s"
-			            }
-		                    ]
-
-				}';
-				$result->name="QueryTemperatureResponse";
-		}
-		 elseif(strpos($result->deviceId,"illumination"))
-		{
-			
-			$str='{
-  	  			"header":{
-  	  			    "namespace":"AliGenie.Iot.Device.Query",
-  	  			    "name":"%s",
-  	  			    "messageId":"%s",
- 	 			     "payLoadVersion":1
-				   },
-				   "payload":{
-				      "deviceId":"%s"
-                               },
-				   "properties":[
-				    {
-		   	              "name":"illumination",
-		   	              "value":"%s"
-			            }
-		                    ]
-
-				}';
-				$result->name="QueryIlluminationResponse";
-		}
-		 elseif(strpos($result->deviceId,"humidity"))
-		{
-			
-			$str='{
-  	  			"header":{
-  	  			    "namespace":"AliGenie.Iot.Device.Query",
-  	  			    "name":"%s",
-  	  			    "messageId":"%s",
- 	 			     "payLoadVersion":1
-				   },
-				   "payload":{
-				      "deviceId":"%s"
-                               },
-				   "properties":[
-				    {
-		   	              "name":"humidity",
-		   	              "value":"%s"
-			            }
-		                    ]
-
-				}';
-				$result->name="QueryHumidityResponse";
-		}
-		else
-		{
-			
-			$str='{
-  	  			"header":{
-  	  			    "namespace":"AliGenie.Iot.Device.Query",
-  	  			    "name":"%s",
-  	  			    "messageId":"%s",
- 	 			     "payLoadVersion":1
-				   },
-				   "payload":{
-				      "deviceId":"%s"
-                               },
-				   "properties":[
-				    {
-		   	              "name":"powerstate",
-		   	              "value":"%s"
-			            }
-		                    ]
-
-				}';
-		}	
-		
-		$resultStr = sprintf($str,$result->name,$messageId,$result->deviceId,$result->powerstate);
-		
+            			},
+				   "properties":%s
+			}';
+		$resultStr = sprintf($str,$result->name,$messageId,$result->deviceId,$properties);
 	}
+#		if(strpos($result->deviceId,"temperature"))
+#	{
+#		
+#		$str='{
+#  			"header":{
+#  			    "namespace":"AliGenie.Iot.Device.Query",
+#  			    "name":"%s",
+#  			    "messageId":"%s",
+# 			     "payLoadVersion":1
+#			   },
+#			   "payload":{
+#			      "deviceId":"%s"
+#                       },
+#			   "properties":[
+#			    {
+#	   	              "name":"temperature",
+#	   	              "value":"%s"
+#		            }
+#	                    ]
+#
+#			}';
+#			$result->name="QueryTemperatureResponse";
+#	}
+#	 elseif(strpos($result->deviceId,"illumination"))
+#	{
+#		
+#		$str='{
+#  			"header":{
+#  			    "namespace":"AliGenie.Iot.Device.Query",
+#  			    "name":"%s",
+#  			    "messageId":"%s",
+# 			     "payLoadVersion":1
+#			   },
+#			   "payload":{
+#			      "deviceId":"%s"
+#                       },
+#			   "properties":[
+#			    {
+#	   	              "name":"brightness",
+#	   	              "value":"%s"
+#		            }
+#	                    ]
+#
+#			}';
+#			$result->name="QueryIlluminationResponse";
+#	}
+#	 elseif(strpos($result->deviceId,"pm25"))
+#	{
+#		
+#		$str='{
+#  			"header":{
+#  			    "namespace":"AliGenie.Iot.Device.Query",
+#  			    "name":"%s",
+#  			    "messageId":"%s",
+# 			     "payLoadVersion":1
+#			   },
+#			   "payload":{
+#			      "deviceId":"%s"
+#                       },
+#			   "properties":[
+#			    {
+#	   	              "name":"pm2.5",
+#	   	              "value":"%s"
+#		            }
+#	                    ]
+#
+#			}';
+#			$result->name="QueryHumidityResponse";
+#	}
+#	 elseif(strpos($result->deviceId,"humidity"))
+#	{
+#		
+#		$str='{
+#  			"header":{
+#  			    "namespace":"AliGenie.Iot.Device.Query",
+#  			    "name":"%s",
+#  			    "messageId":"%s",
+# 			     "payLoadVersion":1
+#			   },
+#			   "payload":{
+#			      "deviceId":"%s"
+#                       },
+#			   "properties":[
+#			    {
+#	   	              "name":"humidity",
+#	   	              "value":"%s"
+#		            }
+#	                    ]
+#
+#			}';
+#			$result->name="QueryHumidityResponse";
+#	}
+#	elseif(strpos($result->deviceId,"Sensor"))
+#
+#	{
+#		
+#		$str='{
+#  			"header":{
+#  			    "namespace":"AliGenie.Iot.Device.Query",
+#  			    "name":"%s",
+#  			    "messageId":"%s",
+# 			     "payLoadVersion":1
+#			   },
+#			   "payload":{
+#			      "deviceId":"%s"
+#                       },
+#			   "properties":%s
+#			}';
+#			$result->name="QueryResponse";
+#	}
+#	else
+#	{
+#		
+#		$str='{
+#  			"header":{
+#  			    "namespace":"AliGenie.Iot.Device.Query",
+#  			    "name":"%s",
+#  			    "messageId":"%s",
+# 			     "payLoadVersion":1
+#			   },
+#			   "payload":{
+#			      "deviceId":"%s"
+#                       },
+#			   "properties":[
+#			    {
+#	   	              "name":"powerstate",
+#	   	              "value":"%s"
+#		            }
+#	                    ]
+#
+#			}';
+#	}	
+#	
+#	$resultStr = sprintf($str,$result->name,$messageId,$result->deviceId,$result->powerstate);
+#	
+#}
 	else
 	{
 		$str='{
@@ -468,9 +280,7 @@ case 'AliGenie.Iot.Device.Query':
 default:
 	$resultStr='Nothing return,there is an error~!!';	
 }
-error_log('-------');
-error_log('----get-request---');
-error_log($poststr);
+
 error_log('----reseponse---');
 error_log($resultStr);
 echo($resultStr);
